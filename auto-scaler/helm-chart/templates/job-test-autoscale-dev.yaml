@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-autoscale-dev
+  namespace: devops-agent-management
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: sa-devops-agent-management
+      containers:
+      - name: autoscale
+        image: <ACR Url>/mcr.microsoft.com/azure-cli-gawk:2.71.0-cbl-mariner2.0
+        command: ["/bin/bash", "/scripts/auto-scale-dev-pod.sh"]
+        env:
+        - name: AZURE_DEVOPS_PAT
+          valueFrom:
+            secretKeyRef:
+              name: azure-devops-pat
+              key: token
+        - name: POOL_NAME
+          value: {{ .Values.dev.poolName }}
+        - name: EXPECTED_COUNT
+          value: {{ .Values.prod.expectedAgentCount | quote }}
+        - name: VMSS_RG_NAME
+          value: {{ .Values.dev.vmssRgName }}
+        - name: VMSS_NAME
+          value: {{ .Values.dev.vmssName }}
+        resources:
+          requests:
+            cpu: 200m
+            memory: 500Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+        - name: scripts-volume
+          mountPath: /scripts
+      volumes:
+      - name: scripts-volume
+        configMap:
+          name: auto-scale-scripts-dev
+          defaultMode: 0755

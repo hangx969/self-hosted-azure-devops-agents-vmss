@@ -1,0 +1,13 @@
+dev:
+  poolName: "xxx-dev"
+  expectedAgentCount: 4
+  vmssRgName: "rg-xxxx-dev"
+  vmssName: "vmss-xxxx-dev"
+
+prod:
+  poolName: "xxxx-prod"
+  expectedAgentCount: 4
+  vmssRgName: "rg-xxxx-prod"
+  vmssName: "vmss-xxx-prod"
+
+azure_devops_pat: "xxxx"
