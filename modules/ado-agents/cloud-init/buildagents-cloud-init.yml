@@ -1,0 +1,14 @@
+#cloud-config
+groups:
+    - docker
+
+system_info:
+    default_user:
+        groups: [docker]
+
+runcmd:
+    - apt-get update
+    - apt-get upgrade -y
+    - systemctl enable docker
+    - systemctl start docker
+    - chmod 666 /var/run/docker.sock
