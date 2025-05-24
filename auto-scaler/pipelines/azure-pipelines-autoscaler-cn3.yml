@@ -1,0 +1,81 @@
+trigger: none
+pr: none
+
+parameters:
+  - name: pipelineName
+    type: string
+    default: 'autoscaler'
+  - name: serviceConnection
+    type: string
+    default: 'lz-cn-spn-self-hosted-agents-dev'
+  - name: agentPool
+    type: string
+    default: 'LZ-cn-self-hosted-agents-dev'
+
+variables:
+  IsMain: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/main') }}
+
+
+stages:
+  - stage: ${{ parameters.pipelineName }}_Build
+    pool: "${{ parameters.agentPool }}"
+    jobs:
+      - job: build
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Helm Lint'
+            inputs:
+              azureSubscription: "${{parameters.serviceConnection}}"
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                export HELM_CHART_DIR=$(System.DefaultWorkingDirectory)/auto-scaler/helm-chart
+                helm lint $HELM_CHART_DIR \
+                  --values $HELM_CHART_DIR/values.yaml
+
+  - stage: ${{ parameters.pipelineName }}_Deploy
+    dependsOn: ${{ parameters.pipelineName }}_Build
+    condition: and(succeeded(), eq(variables.IsMain, 'false'))
+    jobs:
+      - job: deploy
+        displayName: "Deploy autoscaler Helm chart"
+        pool: "${{ parameters.agentPool }}"
+        workspace:
+          clean: all
+        steps:
+          - task: AzureCLI@2
+            displayName: "Authenticate with AKS"
+            condition: and(succeeded(), ne(variables.authenticatedWithAKS, true))
+            inputs:
+              azureSubscription: "${{parameters.serviceConnection}}"
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -e
+                export AKS_RG="rg-infra-dev-chinanorth3"
+                export AKS_NAME="aks-infra-dev-chinanorth3"
+                az aks get-credentials --resource-group "$AKS_RG" --name "$AKS_NAME" --overwrite-existing
+                kubelogin convert-kubeconfig -l azurecli
+                kubectl config use-context $AKS_NAME
+                echo "##vso[task.setvariable variable=authenticatedWithAKS]true"
+
+          - task: AzureCLI@2
+            displayName: Deploy autoscaler Helm chart
+            inputs:
+              azureSubscription: "${{parameters.serviceConnection}}"
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+
+                set -e
+                export HELM_CHART_DIR=$(System.DefaultWorkingDirectory)/auto-scaler/helm-chart
+
+                # Check if namespace exists before applying the YAML
+                kubectl get namespace devops-agent-management >/dev/null 2>&1 || kubectl apply -f $(System.DefaultWorkingDirectory)/auto-scaler/scripts/namespace-devops.yaml
+
+                # deploy helm chart
+                helm upgrade -i autoscaler -n devops-agent-management \
+                  $HELM_CHART_DIR \
+                  --history-max 3 \
+                  --values $HELM_CHART_DIR/values.yaml \

@@ -1,0 +1,24 @@
+trigger: none
+pr: none
+
+variables:
+  TF_VERSION: '1.11.3' # Terraform version to use
+  IsMain: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/main') }}
+  SERVICE_CONNECTION: "lz-cn-spn-agents" # Service connection name for Azure DevOps
+  BACKEND_RG: "rg-agents-backend" # Resource group name for Terraform backend
+  BACKEND_SA: "satfstateagents" # Storage account name for Terraform backend
+  BACKEND_CONTAINER: "tfstate" # Container name for Terraform backend
+  BACKEND_KEY: "agents.tfstate" # Blob name for Terraform backend
+
+
+stages:
+  - template: "templates/azure-pipelines-agents.yml"
+    parameters:
+      pipelineName: "DevopsAgents"
+      environment: "lz-cn-agents" # Azure Devops Environment name
+      backendServiceArm: $(SERVICE_CONNECTION)
+      backendAzureRmResourceGroupName: $(BACKEND_RG)
+      backendAzureRmStorageAccountName: $(BACKEND_SA)
+      backendAzureRmContainerName: $(BACKEND_CONTAINER)
+      backendAzureRmKey: $(BACKEND_KEY)
+      pool: "pool-agents" # Agent pool name

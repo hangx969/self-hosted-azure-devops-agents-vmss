@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-autoscaler-dev
+  namespace: {{ .Values.namespace }}
+spec:
+  schedule: "{{ .Values.dev.schedule }}"
+  jobTemplate:
+    spec:
+      backoffLimit: 10
+      template:
+        metadata:
+          labels:
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Values.serviceAccountName }}
+          containers:
+          - name: autoscaler
+            image: {{ .Values.dev.image }}
+            command: ["/bin/bash", "/scripts/autoscaler-job-based.sh"]
+            env:
+            - name: POOL_NAME
+              value: {{ .Values.dev.poolName }}
+            - name: EXPECTED_COUNT
+              value: {{ .Values.dev.expectedAgentCount | quote }}
+            - name: VMSS_RG_NAME
+              value: {{ .Values.dev.vmssRgName }}
+            - name: VMSS_NAME
+              value: {{ .Values.dev.vmssName }}
+            resources:
+              requests:
+                cpu: 200m
+                memory: 500Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+          volumes:
+          - name: scripts-volume
+            configMap:
+              name: cm-autoscaler
+              defaultMode: 0755

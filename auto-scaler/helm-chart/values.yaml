@@ -1,0 +1,21 @@
+# This is the namespace where the cronjob will be deployed
+namespace: "devops-agent-management"
+
+# This is the name of the service account that will be bounded with workload identity
+serviceAccountName: "sa-devops-agent-management"
+
+dev:
+  schedule: "*/15 * * * *"
+  image: crself-hosted-agents.azurecr.cn/mcr.microsoft.com/azure-cli-gawk:2.71.0-cbl-mariner2.0
+  poolName: "LZ-cn-self-hosted-agents-dev"
+  expectedAgentCount: "4"
+  vmssRgName: "rg-devops-agents-self-hosted-agents-dev"
+  vmssName: "vmss-self-hosted-agents-agents-cn3-dev"
+
+prod:
+  schedule: "*/15 * * * *"
+  image: crself-hosted-agents.azurecr.cn/mcr.microsoft.com/azure-cli-gawk:2.71.0-cbl-mariner2.0
+  poolName: "LZ-cn-self-hosted-agents-prod"
+  expectedAgentCount: "4"
+  vmssRgName: "rg-devops-agents-self-hosted-agents-prod"
+  vmssName: "vmss-self-hosted-agents-agents-cn3-prod"
