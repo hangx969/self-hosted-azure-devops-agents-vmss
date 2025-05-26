@@ -1,7 +1,14 @@
 # Self-Hosted VMSS Agents
 
 ## Project Background
-This project provides a Terraform-based solution to deploy self-hosted Azure DevOps agents using Virtual Machine Scale Sets (VMSS). The purpose is to enable scalable and cost-efficient CI/CD pipelines by leveraging Azure's infrastructure.
+
+Azure DevOps pipelines using Microsoft-hosted agents are unavailable in Azure China, requiring organizations to deploy self-hosted agents instead.
+
+This project delivers a Terraform-based solution for deploying self-hosted Azure DevOps agents through Virtual Machine Scale Sets (VMSS) in Azure China. The implementation provides:
+
+- Scalable agent infrastructure to meet dynamic CI/CD demands
+- Cost optimization through efficient resource utilization
+- Automated deployment following infrastructure-as-code principles
 
 ## Resources Created
 The following resources are provisioned by this project:
