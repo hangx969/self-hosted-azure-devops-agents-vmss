@@ -22,7 +22,7 @@ The following resources are provisioned by this project:
 ## Module Directory
 The project is divided into the following modules, each with its own README file for detailed documentation:
 
-- [VMSS Module](./modules/vmss/README.md): Provisions the Virtual Machine Scale Set and configures the self-hosted agents.
+- [VMSS Module](./modules/ado-agents/README.md): Provisions the Virtual Machine Scale Set and configures the self-hosted agents.
 - [Networking Module](./modules/networking/README.md): Sets up the required networking resources.
 
 Refer to each module's README for specific usage and configuration details.
